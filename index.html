@@ -2,58 +2,91 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telegram Webhook Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Telegram Mini App Test</title>
 
+  <!-- Telegram WebApp API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
       background: #111;
       color: white;
+      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      padding: 20px;
     }
 
     .card {
+      width: 100%;
+      max-width: 500px;
       background: #1e1e1e;
-      padding: 30px;
-      border-radius: 18px;
-      width: 420px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.4);
     }
 
     h1 {
       margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 24px;
     }
 
     .row {
-      margin: 18px 0;
-      padding: 14px;
       background: #2a2a2a;
-      border-radius: 12px;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 14px;
     }
 
     .label {
-      color: #888;
-      font-size: 14px;
+      color: #999;
+      font-size: 13px;
+      margin-bottom: 6px;
     }
 
     .value {
       font-size: 18px;
-      margin-top: 6px;
-      word-break: break-all;
+      word-break: break-word;
+    }
+
+    .success {
+      color: #5cff8d;
+    }
+
+    .error {
+      color: #ff7b7b;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #2f80ed;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.95;
     }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>Проверка Telegram WebApp</h1>
+  <h1>Проверка Telegram Mini App</h1>
 
   <div class="row">
     <div class="label">Имя:</div>
@@ -62,8 +95,24 @@
 
   <div class="row">
     <div class="label">Telegram ID:</div>
-    <div class="value" id="id">Нет данных</div>
+    <div class="value" id="userid">Нет данных</div>
   </div>
+
+  <div class="row">
+    <div class="label">Баланс из переменной:</div>
+    <div class="value" id="balance">
+      ${var.person.balance|default: Нет данных}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label">Статус вебхука:</div>
+    <div class="value" id="status">Ожидание...</div>
+  </div>
+
+  <button onclick="sendWebhook()">
+    Отправить тестовый вебхук
+  </button>
 </div>
 
 <script>
@@ -75,10 +124,59 @@
   document.getElementById("name").textContent =
     user?.first_name || "Нет данных";
 
-  document.getElementById("id").textContent =
+  document.getElementById("userid").textContent =
     user?.id || "Нет данных";
 
-  console.log("Telegram user:", user);
+  async function sendWebhook() {
+    const status = document.getElementById("status");
+
+    status.textContent = "Отправка...";
+    status.className = "value";
+
+    const payload = {
+      telegram_id: user?.id || null,
+      first_name: user?.first_name || null,
+      username: user?.username || null,
+      balance: "${var.person.balance|default: Нет данных}",
+      initData: tg.initData || null,
+      time: new Date().toISOString()
+    };
+
+    console.log("Отправляем:", payload);
+
+    try {
+      const response = await fetch(
+        "https://enotpro.app/wh/1283602313/IfuR2Xs1gH58CLfwPxXGkt",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const text = await response.text();
+
+      status.textContent =
+        "Успешно отправлено ✅";
+
+      status.classList.add("success");
+
+      console.log("Webhook response:", text);
+
+    } catch (err) {
+      console.error(err);
+
+      status.textContent =
+        "Ошибка отправки ❌";
+
+      status.classList.add("error");
+    }
+  }
+
+  // Автоматическая отправка при открытии
+  sendWebhook();
 </script>
 
 </body>
