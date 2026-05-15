@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Webhook Test</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 18px;
+      width: 420px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .row {
+      margin: 18px 0;
+      padding: 14px;
+      background: #2a2a2a;
+      border-radius: 12px;
+    }
+
+    .label {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .value {
+      font-size: 18px;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Проверка Telegram WebApp</h1>
+
+  <div class="row">
+    <div class="label">Имя:</div>
+    <div class="value" id="name">Нет данных</div>
+  </div>
+
+  <div class="row">
+    <div class="label">Telegram ID:</div>
+    <div class="value" id="id">Нет данных</div>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+
+  const user = tg.initDataUnsafe?.user;
+
+  document.getElementById("name").textContent =
+    user?.first_name || "Нет данных";
+
+  document.getElementById("id").textContent =
+    user?.id || "Нет данных";
+
+  console.log("Telegram user:", user);
+</script>
+
+</body>
+</html>
