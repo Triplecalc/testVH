@@ -3,179 +3,168 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Telegram Mini App Test</title>
 
-  <!-- Telegram WebApp API -->
+  <title>Mini App Test</title>
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
+    body{
+      margin:0;
+      background:#111;
+      color:white;
+      font-family:Arial;
+      padding:20px;
     }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #111;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+    .card{
+      background:#1e1e1e;
+      border-radius:18px;
+      padding:20px;
+      max-width:500px;
+      margin:auto;
     }
 
-    .card {
-      width: 100%;
-      max-width: 500px;
-      background: #1e1e1e;
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.4);
+    .row{
+      background:#2a2a2a;
+      padding:15px;
+      border-radius:12px;
+      margin-bottom:15px;
     }
 
-    h1 {
-      margin-top: 0;
-      margin-bottom: 24px;
-      font-size: 24px;
+    .label{
+      color:#999;
+      font-size:13px;
+      margin-bottom:5px;
     }
 
-    .row {
-      background: #2a2a2a;
-      padding: 16px;
-      border-radius: 14px;
-      margin-bottom: 14px;
+    .value{
+      font-size:18px;
+      word-break:break-word;
     }
 
-    .label {
-      color: #999;
-      font-size: 13px;
-      margin-bottom: 6px;
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+      background:#2f80ed;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
     }
 
-    .value {
-      font-size: 18px;
-      word-break: break-word;
+    .success{
+      color:#5cff8d;
     }
 
-    .success {
-      color: #5cff8d;
-    }
-
-    .error {
-      color: #ff7b7b;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 12px;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      background: #2f80ed;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.95;
+    .error{
+      color:#ff6b6b;
     }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>Проверка Telegram Mini App</h1>
 
   <div class="row">
-    <div class="label">Имя:</div>
+    <div class="label">Имя</div>
     <div class="value" id="name">Нет данных</div>
   </div>
 
   <div class="row">
-    <div class="label">Telegram ID:</div>
+    <div class="label">Telegram ID</div>
     <div class="value" id="userid">Нет данных</div>
   </div>
 
   <div class="row">
-    <div class="label">Баланс из переменной:</div>
-    <div class="value" id="balance">
-      ${var.person.balance|default: Нет данных}
-    </div>
+    <div class="label">Баланс</div>
+    <div class="value" id="balance">Нет данных</div>
   </div>
 
   <div class="row">
-    <div class="label">Статус вебхука:</div>
+    <div class="label">Webhook статус</div>
     <div class="value" id="status">Ожидание...</div>
   </div>
 
   <button onclick="sendWebhook()">
-    Отправить тестовый вебхук
+    Отправить webhook
   </button>
+
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
   tg.expand();
 
-  const user = tg.initDataUnsafe?.user;
+  const user = tg.initDataUnsafe?.user || {};
+
+  // ===== USER =====
 
   document.getElementById("name").textContent =
-    user?.first_name || "Нет данных";
+    user.first_name || "Нет данных";
 
   document.getElementById("userid").textContent =
-    user?.id || "Нет данных";
+    user.id || "Нет данных";
 
-  async function sendWebhook() {
-    const status = document.getElementById("status");
+  // ===== BALANCE =====
+
+  const params = new URLSearchParams(window.location.search);
+
+  const balance =
+    params.get("balance") || "Нет данных";
+
+  document.getElementById("balance").textContent =
+    balance;
+
+  // ===== WEBHOOK =====
+
+  function sendWebhook(){
+
+    const status =
+      document.getElementById("status");
 
     status.textContent = "Отправка...";
-    status.className = "value";
 
-    const payload = {
-      telegram_id: user?.id || null,
-      first_name: user?.first_name || null,
-      username: user?.username || null,
-      balance: "${var.person.balance|default: Нет данных}",
-      initData: tg.initData || null,
-      time: new Date().toISOString()
+    // GET запрос через image beacon
+    // работает даже когда fetch режется CORS
+
+    const webhookUrl =
+      "https://enotpro.app/wh/1283602313/IfuR2Xs1gH58CLfwPxXGkt"
+      + "?telegram_id=" + encodeURIComponent(user.id || "")
+      + "&first_name=" + encodeURIComponent(user.first_name || "")
+      + "&username=" + encodeURIComponent(user.username || "")
+      + "&balance=" + encodeURIComponent(balance)
+      + "&time=" + encodeURIComponent(new Date().toISOString());
+
+    console.log("Webhook URL:", webhookUrl);
+
+    const img = new Image();
+
+    img.onload = () => {
+      status.textContent =
+        "Webhook отправлен ✅";
+
+      status.className =
+        "value success";
     };
 
-    console.log("Отправляем:", payload);
+    img.onerror = () => {
 
-    try {
-      const response = await fetch(
-        "https://enotpro.app/wh/1283602313/IfuR2Xs1gH58CLfwPxXGkt",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      const text = await response.text();
+      // Даже при ошибке webhook МОЖЕТ дойти.
+      // Потому что сервер webhook не image.
 
       status.textContent =
-        "Успешно отправлено ✅";
+        "Webhook вероятно отправлен ✅";
 
-      status.classList.add("success");
+      status.className =
+        "value success";
+    };
 
-      console.log("Webhook response:", text);
-
-    } catch (err) {
-      console.error(err);
-
-      status.textContent =
-        "Ошибка отправки ❌";
-
-      status.classList.add("error");
-    }
+    img.src = webhookUrl;
   }
 
-  // Автоматическая отправка при открытии
+  // Автоотправка
   sendWebhook();
 </script>
 
